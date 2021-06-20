@@ -10,7 +10,17 @@ class HibernateVectorDAO: HibernateDAO<Vector>(Vector::class.java), VectorDAO {
         return vector
     }
 
-    // Precondición: La condicionDicion de cuenta debe tener un parametro llamado ubicacionId"
+    override fun recuperarVectoresDeUbicacion(ubicacionId: Long): List<Vector>{
+        val session = HibernateTransaction.currentSession
+        val hql = "select v " +
+                "from Vector v " +
+                "where v.ubicacion.id = :ubicacionId"
+        val query = session.createQuery(hql,Vector::class.java)
+        query.setParameter("ubicacionId",ubicacionId)
+        return query.resultList
+    }
+
+    // Precondición: La condicion de cuenta debe tener un parametro llamado ubicacionId"
 
     private fun contarVectoresSegunCondicion(ubicacionId: Long, condicionDeCuenta : String): Int{
         val session = HibernateTransaction.currentSession

@@ -1,15 +1,17 @@
 package ar.edu.unq.eperdemic
 
 import ar.edu.unq.eperdemic.modelo.*
-import ar.edu.unq.eperdemic.persistencia.dao.DataDAO
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
+import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
+import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jDataDAO
 import ar.edu.unq.eperdemic.services.impl.*
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner
 import ar.edu.unq.eperdemic.services.runner.hibernate.HibernateTransaction
+import ar.edu.unq.eperdemic.services.runner.neo4j.Neo4jTransaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
-abstract class ServiceTest(var dataDAO : DataDAO) {
+abstract class ServiceTest {
 
     var virus = Patogeno("Virus",57,30,30,50,30)
     val virus2 = Patogeno("Virus",57,30,30,50,32)
@@ -21,18 +23,25 @@ abstract class ServiceTest(var dataDAO : DataDAO) {
     val ubicacionDAO = HibernateUbicacionDAO()
     val vectorDAO = HibernateVectorDAO()
     val mutacionDAO = HibernateMutacionDAO()
+    val conexionesDAO = Neo4jConexionesDAO()
     val vectorService = VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO)
-    val ubicacionService = UbicacionServiceImpl(ubicacionDAO,vectorDAO)
+    val ubicacionService = UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO)
     val especieService = EspecieServiceImpl(especieDAO, ubicacionDAO)
     val patogenoService = PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO)
     val mutacionService = MutacionServiceImpl(mutacionDAO, especieDAO)
     val estadisticaService = EstadisticasServiceImpl(especieDAO, vectorDAO)
+    val neo4jDataDAO = Neo4jDataDAO()
+    val hibernateDataDAO = HibernateDataDAO()
 
     //Ubicaciones
     lateinit var otraUbicacion : Ubicacion
     lateinit var argentina : Ubicacion
     lateinit var jamaica : Ubicacion
     lateinit var brasil : Ubicacion
+    lateinit var venezuela : Ubicacion
+    lateinit var colombia : Ubicacion
+    lateinit var chile : Ubicacion
+    lateinit var uruguay : Ubicacion
 
     //Especies
     lateinit var covid : Especie
@@ -73,12 +82,13 @@ abstract class ServiceTest(var dataDAO : DataDAO) {
 
     @BeforeEach
     fun inizializate() {
-        TransactionRunner.transaction = HibernateTransaction
+        TransactionRunner.transactions = listOf(HibernateTransaction,Neo4jTransaction)
     }
 
     @AfterEach
     fun eliminarTodo() {
-        dataDAO.clear()
+        neo4jDataDAO.clear()
+        hibernateDataDAO.clear()
     }
 
     fun crearDatosParaTesteosDeEstadisticas(){
@@ -109,4 +119,17 @@ abstract class ServiceTest(var dataDAO : DataDAO) {
         rana = vectorService.crear(TipoDeVector.Animal,argentina.id!!)
         perro = vectorService.crear(TipoDeVector.Animal,argentina.id!!)
     }
+
+    fun inicializarUbicaciones(){
+        argentina = ubicacionService.crear("argentina")
+        otraUbicacion = ubicacionService.crear("ningun lugar")
+        jamaica = ubicacionService.crear("jamaica")
+        brasil = ubicacionService.crear("brasil")
+        venezuela = ubicacionService.crear("venezuela")
+        colombia = ubicacionService.crear("colombia")
+        chile = ubicacionService.crear("chile")
+        uruguay = ubicacionService.crear("uruguay")
+    }
+
+
 }

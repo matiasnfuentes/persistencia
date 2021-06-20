@@ -9,3 +9,8 @@ class Ubicacion(var nombre: String):Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id : Long? = null
 }
+
+enum class TipoDeCamino{
+    Aereo,
+    Maritimo,
+    Terrestre }

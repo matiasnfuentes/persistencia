@@ -7,7 +7,7 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 
 
-class VectorServiceTest :ServiceTest(HibernateDataDAO()) {
+class VectorServiceTest :ServiceTest() {
 
     val personas = mutableListOf<Vector>()
     var adnAntesDeInfectar = 0

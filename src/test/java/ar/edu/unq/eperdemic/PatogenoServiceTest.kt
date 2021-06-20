@@ -7,7 +7,7 @@ import org.junit.jupiter.api.assertThrows
 import java.lang.Exception
 
 
-class PatogenoServiceTest: ServiceTest(HibernateDataDAO()) {
+class PatogenoServiceTest: ServiceTest() {
 
     @Test
     fun creo_un_patogeno_y_se_persiste_entonces_lo_puedo_recuperar() {

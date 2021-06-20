@@ -3,7 +3,6 @@ package ar.edu.unq.eperdemic.services.impl
 import ar.edu.unq.eperdemic.modelo.Especie
 import ar.edu.unq.eperdemic.persistencia.dao.EspecieDAO
 import ar.edu.unq.eperdemic.persistencia.dao.UbicacionDAO
-import ar.edu.unq.eperdemic.persistencia.dao.VectorDAO
 import ar.edu.unq.eperdemic.services.EspecieService
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner.runTrx
 

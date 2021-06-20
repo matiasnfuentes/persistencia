@@ -1,23 +1,25 @@
-package ar.edu.unq.eperdemic.services.runner.hibernate
-import ar.edu.unq.eperdemic.services.runner.Transaction
-import org.hibernate.Session
+package ar.edu.unq.eperdemic.services.runner.neo4j
 
-object HibernateTransaction: Transaction() {
+import ar.edu.unq.eperdemic.services.runner.Transaction
+import org.neo4j.driver.*
+
+
+object Neo4jTransaction: Transaction() {
 
     private var sessionThreadLocal: ThreadLocal<Session?> = ThreadLocal()
-    private var transaction: ThreadLocal<org.hibernate.Transaction?> = ThreadLocal()
+    var transaction: ThreadLocal<org.neo4j.driver.Transaction?> = ThreadLocal()
 
 
-    val currentSession: Session
+    val currentTransaction: org.neo4j.driver.Transaction
         get() {
-            if(sessionThreadLocal.get() == null){
+            if(transaction.get() == null){
                 start()
             }
-            return sessionThreadLocal.get()!!
+            return transaction.get()!!
         }
 
     override fun start() {
-        val session = HibernateSessionFactoryProvider.instance.createSession()
+        val session = Neo4jSessionFactoryProvider.instance.createSession()
         sessionThreadLocal.set(session)
         transaction.set(session.beginTransaction())
     }

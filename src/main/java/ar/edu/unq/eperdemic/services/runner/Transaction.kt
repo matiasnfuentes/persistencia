@@ -9,20 +9,20 @@ abstract class Transaction {
 
 object TransactionRunner {
 
-    lateinit var transaction: Transaction
+    lateinit var transactions: List<Transaction>
 
     fun <T> runTrx(bloque: ()->T): T {
-        if(transaction.isRunning()){
-            return bloque()
-        }
-        transaction.start()
         try {
             val result = bloque()
-            transaction.commit()
+            forEachRunningTransaction { t -> t.commit() }
             return result
         }catch (e: Throwable){
-            transaction.rollback()
+            forEachRunningTransaction { t -> t.rollback() }
             throw e
         }
+    }
+
+    fun forEachRunningTransaction(f : (Transaction) -> Unit){
+        transactions.filter { it.isRunning() }.forEach{ f(it) }
     }
 }

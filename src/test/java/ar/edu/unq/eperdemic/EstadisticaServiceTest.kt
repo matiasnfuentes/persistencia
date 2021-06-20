@@ -8,7 +8,7 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class EstadisticaServiceTest: ServiceTest(HibernateDataDAO()) {
+class EstadisticaServiceTest: ServiceTest() {
 
     @Test
     fun covid_es_lider_porque_infecto_3_humanos(){

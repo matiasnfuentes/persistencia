@@ -37,10 +37,17 @@ class Vector(
     fun cambiarUbicacion(ubicacion: Ubicacion) {
         this.ubicacion = ubicacion
     }
+
+    fun caminosPermitidos(): List<TipoDeCamino> {
+        return tipo.caminosPermitidos()
+    }
+
 }
 
 enum class TipoDeVector {
     Persona {
+        private val caminosPermitidos = listOf(TipoDeCamino.Maritimo,TipoDeCamino.Terrestre)
+
         override fun condicionDeContagio(vector: Vector): Boolean {
             return true
         }
@@ -55,8 +62,15 @@ enum class TipoDeVector {
                 especie.adnDisponible++
             }
         }
+
+        override fun caminosPermitidos(): List<TipoDeCamino>{
+            return  caminosPermitidos
+        }
+
     },
     Insecto {
+        private val caminosPermitidos = listOf(TipoDeCamino.Aereo,TipoDeCamino.Terrestre)
+
         override fun condicionDeContagio(vector: Vector): Boolean {
             return vector.tipo != Insecto
         }
@@ -64,14 +78,26 @@ enum class TipoDeVector {
         override fun factorDeContagio(especie: Especie): Int {
             return especie.contagioInsectos()
         }
+
+        override fun caminosPermitidos(): List<TipoDeCamino>{
+            return caminosPermitidos
+        }
+
     },
+
     Animal {
+        private val caminosPermitidos = listOf(TipoDeCamino.Aereo,TipoDeCamino.Maritimo,TipoDeCamino.Terrestre)
+
         override fun condicionDeContagio(vector: Vector): Boolean {
             return vector.tipo == Insecto
         }
 
         override fun factorDeContagio(especie: Especie): Int {
             return especie.contagioAnimal()
+        }
+
+        override fun caminosPermitidos(): List<TipoDeCamino>{
+            return caminosPermitidos
         }
 
     };
@@ -95,5 +121,5 @@ enum class TipoDeVector {
     open fun intentarAumentarADN(especie: Especie) {}
     abstract fun condicionDeContagio(vector: Vector): Boolean
     abstract fun factorDeContagio(especie: Especie): Int
-
+    abstract fun caminosPermitidos(): List<TipoDeCamino>
 }

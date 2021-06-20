@@ -2,6 +2,7 @@ package ar.edu.unq.eperdemic.spring.configuration
 
 import ar.edu.unq.eperdemic.persistencia.dao.*
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
+import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
 import ar.edu.unq.eperdemic.services.*
 import ar.edu.unq.eperdemic.services.impl.*
 import org.springframework.context.annotation.Bean
@@ -14,6 +15,11 @@ class AppConfiguration {
     fun groupName() : String {
         val groupName :String?  = System.getenv()["GROUP_NAME"]
         return groupName!!
+    }
+
+    @Bean
+    fun conexionesDAO(): ConexionesDAO {
+        return Neo4jConexionesDAO()
     }
 
     @Bean
@@ -64,8 +70,8 @@ class AppConfiguration {
     }
 
     @Bean
-    fun ubicacionService(ubicacionDAO: UbicacionDAO,vectorDAO: VectorDAO): UbicacionService {
-        return UbicacionServiceImpl(ubicacionDAO,vectorDAO)
+    fun ubicacionService(ubicacionDAO: UbicacionDAO,vectorDAO: VectorDAO , conexionesDAO: ConexionesDAO): UbicacionService {
+        return UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO)
     }
 
     @Bean

@@ -4,10 +4,8 @@ import kotlin.random.Random
 
  object Randomizador{
 
-        fun getRandomVectorInfectado(vectores: List<Vector>, ubicacionId: Long): Vector?{
-            return vectores
-                        .filter { (it.ubicacion).id == ubicacionId && it.puedeContagiar() }
-                        .randomOrNull()
+        fun getRandomVectorInfectado(vectores: List<Vector>): Vector?{
+            return vectores.filter { it.puedeContagiar() }.randomOrNull()
         }
 
         fun getPorcentajeDeContagio():Int{

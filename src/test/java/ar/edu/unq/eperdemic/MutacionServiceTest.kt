@@ -7,7 +7,7 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class MutacionServiceTest: ServiceTest(HibernateDataDAO()) {
+class MutacionServiceTest: ServiceTest() {
 
     @Test
     fun creo_una_mutacion_y_se_persiste_entonces_lo_puedo_recuperar() {

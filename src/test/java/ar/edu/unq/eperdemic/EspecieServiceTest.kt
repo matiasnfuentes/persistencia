@@ -1,16 +1,12 @@
 package ar.edu.unq.eperdemic
 
-import ar.edu.unq.eperdemic.modelo.Especie
 import ar.edu.unq.eperdemic.modelo.TipoDeVector
-import ar.edu.unq.eperdemic.modelo.Ubicacion
-import ar.edu.unq.eperdemic.modelo.Vector
-import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner.runTrx
 import org.junit.Assert
 import org.junit.jupiter.api.Test
 
 
-class EspecieServiceTest: ServiceTest(HibernateDataDAO()) {
+class EspecieServiceTest: ServiceTest() {
 
     @Test
     fun persisto_una_especie_y_puedo_recuperarla() {

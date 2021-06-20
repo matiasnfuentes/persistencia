@@ -11,5 +11,5 @@ interface VectorDAO {
     fun actualizar(item: Vector)
     fun vectoresEnUbicacion(ubicacionId: Long): Int
     fun vectoresInfectadosEnUbicacion(ubicacionId: Long): Int
-
+    fun recuperarVectoresDeUbicacion(ubicacionId: Long): List<Vector>
 }
