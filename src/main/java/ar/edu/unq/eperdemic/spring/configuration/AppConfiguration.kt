@@ -2,9 +2,11 @@ package ar.edu.unq.eperdemic.spring.configuration
 
 import ar.edu.unq.eperdemic.persistencia.dao.*
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
+import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
 import ar.edu.unq.eperdemic.services.*
 import ar.edu.unq.eperdemic.services.impl.*
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,6 +22,11 @@ class AppConfiguration {
     @Bean
     fun conexionesDAO(): ConexionesDAO {
         return Neo4jConexionesDAO()
+    }
+
+    @Bean
+    fun eventDAO(): MongoDBEventDAO {
+        return MongoDBEventDAO()
     }
 
     @Bean
@@ -44,7 +51,7 @@ class AppConfiguration {
 
     @Bean
     fun mutacionService(mutacionDao: MutacionDAO, especieDAO: EspecieDAO): MutacionService {
-        return MutacionServiceImpl(mutacionDao,especieDAO)
+        return MutacionServiceImpl(mutacionDao,especieDAO, AlarmaDeEventos)
     }
 
     @Bean
@@ -65,18 +72,19 @@ class AppConfiguration {
     @Bean
     fun patogenoService(patogenoDAO: PatogenoDAO,
                         especieDAO: EspecieDAO,
-                        ubicacionDAO: UbicacionDAO): PatogenoService {
-        return PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO)
+                        ubicacionDAO: UbicacionDAO,
+                        eventDAO: MongoDBEventDAO): PatogenoService {
+        return PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO,AlarmaDeEventos)
     }
 
     @Bean
-    fun ubicacionService(ubicacionDAO: UbicacionDAO,vectorDAO: VectorDAO , conexionesDAO: ConexionesDAO): UbicacionService {
-        return UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO)
+    fun ubicacionService(ubicacionDAO: UbicacionDAO,vectorDAO: VectorDAO , conexionesDAO: ConexionesDAO, especieDAO: EspecieDAO, especieService: EspecieService): UbicacionService {
+        return UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO,especieDAO,especieService,AlarmaDeEventos)
     }
 
     @Bean
-    fun vectorService(vectorDAO : VectorDAO,especieDAO: EspecieDAO, ubicacionDAO: UbicacionDAO): VectorService {
-        return VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO)
+    fun vectorService(vectorDAO : VectorDAO,especieDAO: EspecieDAO, ubicacionDAO: UbicacionDAO, especieService: EspecieService): VectorService {
+        return VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO,especieService,AlarmaDeEventos)
     }
 
 }

@@ -1,12 +1,16 @@
 package ar.edu.unq.eperdemic
 
 import ar.edu.unq.eperdemic.modelo.*
+import ar.edu.unq.eperdemic.modelo.eventos.Evento
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
+import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jDataDAO
 import ar.edu.unq.eperdemic.services.impl.*
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner
 import ar.edu.unq.eperdemic.services.runner.hibernate.HibernateTransaction
+import ar.edu.unq.eperdemic.services.runner.mongoDB.MongoConnection
 import ar.edu.unq.eperdemic.services.runner.neo4j.Neo4jTransaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -24,14 +28,17 @@ abstract class ServiceTest {
     val vectorDAO = HibernateVectorDAO()
     val mutacionDAO = HibernateMutacionDAO()
     val conexionesDAO = Neo4jConexionesDAO()
-    val vectorService = VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO)
-    val ubicacionService = UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO)
+    val eventDAO = MongoDBEventDAO()
     val especieService = EspecieServiceImpl(especieDAO, ubicacionDAO)
-    val patogenoService = PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO)
-    val mutacionService = MutacionServiceImpl(mutacionDAO, especieDAO)
+    val vectorService = VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO,especieService,AlarmaDeEventos)
+    val feedService = FeedServiceImpl(eventDAO,vectorDAO,patogenoDAO,ubicacionDAO)
+    val ubicacionService = UbicacionServiceImpl(ubicacionDAO,vectorDAO,conexionesDAO,especieDAO,especieService,AlarmaDeEventos)
+    val patogenoService = PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO,AlarmaDeEventos)
+    val mutacionService = MutacionServiceImpl(mutacionDAO, especieDAO,AlarmaDeEventos)
     val estadisticaService = EstadisticasServiceImpl(especieDAO, vectorDAO)
     val neo4jDataDAO = Neo4jDataDAO()
     val hibernateDataDAO = HibernateDataDAO()
+    val mongoConnection = MongoConnection()
 
     //Ubicaciones
     lateinit var otraUbicacion : Ubicacion
@@ -89,6 +96,8 @@ abstract class ServiceTest {
     fun eliminarTodo() {
         neo4jDataDAO.clear()
         hibernateDataDAO.clear()
+        AlarmaDeEventos.eliminarTodos()
+        mongoConnection.getCollection("Evento",Evento::class.java).drop()
     }
 
     fun crearDatosParaTesteosDeEstadisticas(){

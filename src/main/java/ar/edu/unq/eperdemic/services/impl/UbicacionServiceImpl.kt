@@ -1,19 +1,23 @@
 package ar.edu.unq.eperdemic.services.impl
 
-import ar.edu.unq.eperdemic.modelo.Randomizador
-import ar.edu.unq.eperdemic.modelo.TipoDeCamino
-import ar.edu.unq.eperdemic.modelo.Ubicacion
-import ar.edu.unq.eperdemic.modelo.Vector
+import ar.edu.unq.eperdemic.modelo.*
+import ar.edu.unq.eperdemic.modelo.eventos.TipoContagio
 import ar.edu.unq.eperdemic.modelo.exceptions.UbicacionNoAlcanzable
 import ar.edu.unq.eperdemic.persistencia.dao.ConexionesDAO
+import ar.edu.unq.eperdemic.persistencia.dao.EspecieDAO
 import ar.edu.unq.eperdemic.persistencia.dao.UbicacionDAO
 import ar.edu.unq.eperdemic.persistencia.dao.VectorDAO
+import ar.edu.unq.eperdemic.services.EspecieService
 import ar.edu.unq.eperdemic.services.UbicacionService
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner.runTrx
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 
 class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
                            var vectorDAO: VectorDAO,
-                           val conexionesDAO: ConexionesDAO): UbicacionService {
+                           val conexionesDAO: ConexionesDAO,
+                           val especieDAO: EspecieDAO,
+                           val especieService: EspecieService,
+                           val alarmaEventos:AlarmaDeEventos ): UbicacionService {
 
     override fun mover(vectorId: Long, ubicacionid: Long) {
         runTrx{
@@ -22,12 +26,13 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
             val ruta = conexionesDAO.rutaAUbicacion(vector,ubicacionid)
             if (ruta.isNotEmpty()){
                 vector.cambiarUbicacion(ubicacion)
+                alarmaEventos.notificar(vector,ubicacion)
             } else{
                 throw UbicacionNoAlcanzable("Ubicacion no alcanzable")
             }
             if(vector.puedeContagiar()) {
-                ruta.forEach { id -> val vectores = vectorDAO.recuperarVectoresDeUbicacion(id)
-                                    contagiarVectores(vectores,vector)
+                ruta.forEach { id -> val vectores = vectorDAO.recuperarVectoresDeUbicacion(id).filter { it.id != vectorId }
+                                     contagiarVectores(vectores,vector,id)
                 }
             }
         }
@@ -35,26 +40,19 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
 
     override fun expandir(ubicacionId: Long) {
         runTrx{
-            val vectores = vectorDAO.recuperarVectoresDeUbicacion(ubicacionId)
+            var vectores = vectorDAO.recuperarVectoresDeUbicacion(ubicacionId)
             val vectorDeContagio = Randomizador.getRandomVectorInfectado(vectores)
             if (vectorDeContagio!=null){
-                contagiarVectores(vectores,vectorDeContagio)
+                contagiarVectores(vectores,vectorDeContagio, ubicacionId)
             }
-        }
-    }
-
-    private fun contagiarVectores(vectores :List<Vector>, vector: Vector){
-        vectores.forEach {
-                            it.serContagiado(vector)
-                            vectorDAO.actualizar(it)
         }
     }
 
     override fun crear(nombreUbicacion: String): Ubicacion {
         return runTrx{
-                    val ubicacion = ubicacionDAO.crear(nombreUbicacion)
-                    conexionesDAO.crearUbicacion(ubicacion)
-                    ubicacion
+            val ubicacion = ubicacionDAO.crear(nombreUbicacion)
+            conexionesDAO.crearUbicacion(ubicacion)
+            ubicacion
         }
     }
 
@@ -68,24 +66,57 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
 
     override fun conectar(ubicacion1: Long, ubicacion2: Long, tipoCamino: TipoDeCamino) {
         runTrx {
-                val origen = ubicacionDAO.recuperar(ubicacion1)
-                val destino = ubicacionDAO.recuperar(ubicacion2)
-                conexionesDAO.conectar(origen.id!!,destino.id!!,tipoCamino)
+            val origen = ubicacionDAO.recuperar(ubicacion1)
+            val destino = ubicacionDAO.recuperar(ubicacion2)
+            conexionesDAO.conectar(origen.id!!,destino.id!!,tipoCamino)
         }
     }
 
     override fun conectados(ubicacionId: Long): List<Ubicacion> {
         return runTrx {
-                        val ubicacion = ubicacionDAO.recuperar(ubicacionId)
-                        conexionesDAO.conectados(ubicacion.id!!)
+            val ubicacion = ubicacionDAO.recuperar(ubicacionId)
+            conexionesDAO.conectados(ubicacion.id!!)
         }
     }
 
     override fun capacidadDeExpansion(vectorId: Long, movimientos: Int): Int {
         return runTrx {
-                    val vector = vectorDAO.recuperar(vectorId)
-                    conexionesDAO.capacidadDeExpansion(vector,movimientos)
+            val vector = vectorDAO.recuperar(vectorId)
+            conexionesDAO.capacidadDeExpansion(vector,movimientos)
         }
     }
+
+    private fun contagiarVectores(vectores :List<Vector>, vector: Vector, ubicacionId: Long){
+        val cantidadDeUbicacionesDelasEspecies = vector.especiesPadecidas.map { especieDAO.cantidadDeUbicacionesDeLaEspecie(it.id!!) }.toMutableList()
+        val eranPandemias = vector.especiesPadecidas.map { especieService.esPandemia(it.id!!) }.toMutableList()
+
+        vectores.forEach {
+                            it.serContagiado(vector)
+                            vectorDAO.actualizar(it)
+        }
+
+        notificarEventos(vector.especiesPadecidas,cantidadDeUbicacionesDelasEspecies,eranPandemias,ubicacionId)
+
+    }
+
+    private fun notificarEventos(especiesPadecidas: List<Especie>,
+                                 cantidadDeUbicacionesDelasEspecies: MutableList<Double>,
+                                 eranPandemias : MutableList<Boolean>,
+                                 ubicacionId: Long){
+        especiesPadecidas.forEach {
+            val cantUbicacionesDespuesDeContagiar = especieDAO.cantidadDeUbicacionesDeLaEspecie(it.id!!)
+            val ubicacion = ubicacionDAO.recuperar(ubicacionId)
+
+            if(cantidadDeUbicacionesDelasEspecies.removeFirst()>cantUbicacionesDespuesDeContagiar){
+                alarmaEventos.notificar(it,ubicacion,TipoContagio.PrimerContagioEnUbicaion)
+            }
+
+            if(!eranPandemias.removeFirst() && especieService.esPandemia(it.id!!)){
+                alarmaEventos.notificar(it,ubicacion,TipoContagio.Pandemia)
+            }
+        }
+    }
+
+
 
 }

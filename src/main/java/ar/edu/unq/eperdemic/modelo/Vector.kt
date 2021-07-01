@@ -1,4 +1,5 @@
 package ar.edu.unq.eperdemic.modelo
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import java.io.Serializable
 import javax.persistence.*
 
@@ -6,7 +7,7 @@ import javax.persistence.*
 class Vector(
     @Enumerated(value = EnumType.STRING)
     var tipo: TipoDeVector,
-    @ManyToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     var ubicacion: Ubicacion): Serializable {
 
     @Id
@@ -45,6 +46,7 @@ class Vector(
 }
 
 enum class TipoDeVector {
+
     Persona {
         private val caminosPermitidos = listOf(TipoDeCamino.Maritimo,TipoDeCamino.Terrestre)
 
@@ -102,19 +104,23 @@ enum class TipoDeVector {
 
     };
 
+    @Transient
+    val alarma = AlarmaDeEventos
+
     fun serContagiado(vectorAContagiar: Vector, vector: Vector) {
         if (condicionDeContagio(vector)) {
             vector.especiesPadecidas
                   .filter { !vectorAContagiar.estaContagiadoCon(it.id!!) }
-                  .forEach { efectuarContagio(it, vectorAContagiar) }
+                  .forEach { efectuarContagio(it, vectorAContagiar,vector) }
             }
         }
 
-    fun efectuarContagio(enfermedad: Especie, vectorAContagiar: Vector) {
+    fun efectuarContagio(enfermedad: Especie, vectorAContagiar: Vector, vectorDeContagio: Vector) {
         val porcentajeDeContagioExitoso = Randomizador.getPorcentajeDeContagio() + factorDeContagio(enfermedad)
         val porcentajeASuperar = Randomizador.getPorcentajeASuperar()
         if (porcentajeDeContagioExitoso >= porcentajeASuperar) {
             vectorAContagiar.infectar(enfermedad)
+            alarma.notificar(enfermedad,vectorAContagiar,vectorDeContagio)
         }
     }
 

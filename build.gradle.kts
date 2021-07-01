@@ -47,6 +47,9 @@ dependencies {
     implementation("io.mockk:mockk:1.11.0")
     testImplementation("io.mockk:mockk:1.11.0")
     implementation("org.neo4j.driver:neo4j-java-driver:4.0.1")
+    implementation("org.mongodb:mongodb-driver-sync:4.2.3")
+    implementation("org.mongodb:mongodb-driver-core:4.2.3")
+    implementation("org.mongodb:bson:4.2.3")
 }
 
 tasks.withType<Test> {

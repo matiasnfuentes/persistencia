@@ -7,10 +7,13 @@ import ar.edu.unq.eperdemic.persistencia.dao.PatogenoDAO
 import ar.edu.unq.eperdemic.persistencia.dao.UbicacionDAO
 import ar.edu.unq.eperdemic.services.PatogenoService
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner.runTrx
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 
 class PatogenoServiceImpl(val patogenoDAO: PatogenoDAO,
                           val especieDAO: EspecieDAO,
-                          val ubicacionDAO: UbicacionDAO) : PatogenoService {
+                          val ubicacionDAO: UbicacionDAO,
+                          val alarmaDeEventos: AlarmaDeEventos
+) : PatogenoService {
 
     override fun crear(patogeno: Patogeno): Patogeno {
         return runTrx { patogenoDAO.crear(patogeno) }
@@ -30,6 +33,7 @@ class PatogenoServiceImpl(val patogenoDAO: PatogenoDAO,
                         val ubicacion = ubicacionDAO.recuperar(ubicacionId)
                         val especieNueva = patogenoDeLaEspecie.crearEspecie(nombre,ubicacion)
                         val especiePeristida = especieDAO.crear(especieNueva)
+                        alarmaDeEventos.notificar(especiePeristida)
                         especiePeristida
         }
     }
