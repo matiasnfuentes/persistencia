@@ -15,3 +15,4 @@ Desarrollo de un simulador de pandemias en Kotlin, realizando persistencia en SQ
  2.  [Entrega 2](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega2/hito1.md)
  3.  [Entrega 3](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega3/entrega3.md)
  4. [Entrega 4](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega4/entrega4.md)
+ 5. [Entrega 5](https://github.com/matiasnfuentes/persistencia/tree/master/enunciado/entrega5.md)
