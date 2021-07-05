@@ -57,7 +57,7 @@ class Neo4jConexionesDAO : ConexionesDAO{
     // transitar la ruta, o que la ruta no exista, devuelve una lista vacia.
     // Siempre elige el camino mas corto para llegar al destino
 
-    override fun rutaAUbicacion(vector: Vector, ubicacionid: Long): List<Long> {
+    override fun rutaAUbicacion(vector: Vector, destino: Ubicacion): List<Long> {
         val transaction = Neo4jTransaction.currentTransaction
         val ubicacion = vector.ubicacion.id
         val tiposCaminos = vector.tipo.caminosPermitidos().map { it.name }
@@ -74,7 +74,7 @@ class Neo4jConexionesDAO : ConexionesDAO{
                 END AS result"""
         val result = transaction.run(
             query, Values.parameters("ubicacion", ubicacion,
-                "destino",ubicacionid,
+                "destino",destino.id,
                 "tiposDeCamino",tiposCaminos))
         return try {
             result.single()[0].asList().map { id -> id as Long }.filter { id -> id!= ubicacion }
@@ -84,7 +84,7 @@ class Neo4jConexionesDAO : ConexionesDAO{
         }
     }
 
-    override fun conectar(ubicacion1:Long, ubicacion2:Long, tipoCamino: TipoDeCamino){
+    override fun conectar(origen: Ubicacion, destino: Ubicacion, tipoCamino: TipoDeCamino) {
         val transaction = Neo4jTransaction.currentTransaction
         val query = """
                 MATCH (ubicacion1:Ubicacion {hibernateID: ${'$'}ubicacion1ID})
@@ -93,8 +93,8 @@ class Neo4jConexionesDAO : ConexionesDAO{
             """
         transaction.run(
             query, Values.parameters(
-                "ubicacion1ID", ubicacion1,
-                "ubicacion2ID", ubicacion2,
+                "ubicacion1ID", origen.id,
+                "ubicacion2ID", destino.id,
                 "tipoCamino",tipoCamino.name
             )
         )

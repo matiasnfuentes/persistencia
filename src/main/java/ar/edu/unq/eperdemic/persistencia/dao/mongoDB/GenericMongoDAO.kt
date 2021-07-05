@@ -1,21 +1,21 @@
 package ar.edu.unq.eperdemic.persistencia.dao.mongoDB
 
-import ar.edu.unq.eperdemic.services.runner.mongoDB.MongoConnection
+import ar.edu.unq.eperdemic.services.runner.mongoDB.MongoDBTransaction
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters.eq
 import org.bson.conversions.Bson
 
-    open class GenericMongoDAO<T>(entityType: Class<T>) {
+open class GenericMongoDAO<T>(entityType: Class<T>) {
 
-        protected var connection: MongoConnection = MongoConnection()
-        protected var collection:MongoCollection<T>
+    protected var collection:MongoCollection<T>
 
-        init {
-            collection = connection.getCollection(entityType.simpleName, entityType)
-        }
+    init {
+        collection = MongoDBTransaction.getCollection(entityType.simpleName, entityType)
+    }
 
     fun deleteAll() {
-        collection.drop()
+        val session = MongoDBTransaction.currentSession
+        collection.drop(session)
     }
 
     fun save(anObject: T) {
@@ -23,11 +23,13 @@ import org.bson.conversions.Bson
     }
 
     fun update(anObject: T, id: String?) {
-        collection.replaceOne(eq("id", id), anObject)
+        val session = MongoDBTransaction.currentSession
+        collection.replaceOne(session,eq("id", id), anObject)
     }
 
     fun save(objects: List<T>) {
-        collection.insertMany(objects)
+        val session = MongoDBTransaction.currentSession
+        collection.insertMany(session,objects)
     }
 
     operator fun get(id: String?): T? {
@@ -35,7 +37,8 @@ import org.bson.conversions.Bson
     }
 
     fun getBy(property:String, value: String?): T? {
-        return collection.find(eq(property, value)).first()
+        val session = MongoDBTransaction.currentSession
+        return collection.find(session,eq(property, value)).first()
     }
 
     fun <E> findEq(field:String, value:E ): List<T> {
@@ -43,11 +46,13 @@ import org.bson.conversions.Bson
     }
 
     fun find(filter:Bson): List<T> {
-        return collection.find(filter).into(mutableListOf())
+        val session = MongoDBTransaction.currentSession
+        return collection.find(session,filter).into(mutableListOf())
     }
 
     fun <T> aggregate(pipeline:List<Bson> , resultClass:Class<T>): List<T> {
-        return collection.aggregate(pipeline, resultClass).into(ArrayList())
+        val session = MongoDBTransaction.currentSession
+        return collection.aggregate(session,pipeline, resultClass).into(ArrayList())
     }
 
 

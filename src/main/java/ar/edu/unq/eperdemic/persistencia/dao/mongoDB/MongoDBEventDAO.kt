@@ -3,17 +3,13 @@ package ar.edu.unq.eperdemic.persistencia.dao.mongoDB
 import ar.edu.unq.eperdemic.modelo.*
 import ar.edu.unq.eperdemic.modelo.eventos.*
 import ar.edu.unq.eperdemic.persistencia.dao.EventDAO
-import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import ar.edu.unq.eperdemic.services.observer.Observador
 import com.mongodb.client.model.Filters
 
 class MongoDBEventDAO:GenericMongoDAO<Evento>(Evento::class.java), EventDAO, Observador {
 
-    init {
-        AlarmaDeEventos.agregar(this)
-    }
-
     override fun feedPatogeno(patogeno: Patogeno): List<Evento> {
+
         val res = mutableListOf<Evento>()
 
         res.addAll(find(Filters.and(Filters.eq("_t", "mutacion"),
@@ -24,20 +20,21 @@ class MongoDBEventDAO:GenericMongoDAO<Evento>(Evento::class.java), EventDAO, Obs
                                     Filters.eq("especie.patogeno.tipo", patogeno.tipo),
                                     Filters.or(
                                         Filters.eq("subtipo", TipoContagio.Pandemia.name),
-                                        Filters.eq("subtipo", TipoContagio.PrimerContagioEnUbicaion.name)
+                                        Filters.eq("subtipo", TipoContagio.PrimerContagioEnUbicacion.name)
                                     ))))
         res.sortByDescending { it.momento }
         return res
     }
 
+
     override fun feedUbicacion(ubicacion: Ubicacion): List<Evento> {
         val res = mutableListOf<Evento>()
 
         res.addAll(find(Filters.and(Filters.eq("_t", "arribo"),
-                                    Filters.eq("ubicacion.id", ubicacion.id))))
+                                    Filters.eq("ubicacion._id", ubicacion.id))))
 
         res.addAll(find(Filters.and(Filters.eq("_t", "contagio"),
-                                    Filters.eq("ubicacionDeContagio.id", ubicacion.id),
+                                    Filters.eq("ubicacion._id", ubicacion.id),
                                     Filters.eq("subtipo", TipoContagio.Contagio.name)
                                     )))
 
@@ -55,7 +52,7 @@ class MongoDBEventDAO:GenericMongoDAO<Evento>(Evento::class.java), EventDAO, Obs
                                     ))))
 
         res.addAll(find(Filters.and(Filters.eq("_t", "arribo"),
-                                    Filters.eq("vector.id", vector.id))))
+                                    Filters.eq("vector._id", vector.id))))
 
         res.sortByDescending { it.momento }
         return res
@@ -72,7 +69,7 @@ class MongoDBEventDAO:GenericMongoDAO<Evento>(Evento::class.java), EventDAO, Obs
     override fun actualizar(enfermedad: Especie, ubicacion: Ubicacion, tipoContagio: TipoContagio) {
         var mensaje = ""
         when (tipoContagio) {
-            TipoContagio.PrimerContagioEnUbicaion ->
+            TipoContagio.PrimerContagioEnUbicacion ->
                 mensaje = "Primer contagio de ${enfermedad.nombre} en ${ubicacion.nombre}"
 
             TipoContagio.Pandemia ->
@@ -103,5 +100,6 @@ class MongoDBEventDAO:GenericMongoDAO<Evento>(Evento::class.java), EventDAO, Obs
         val mutacionEvent = MutacionE(especie,TipoMutacion.Mutacion, "La enfermedad muto con ${mutacion.nombre}")
         save(mutacionEvent)
     }
+
 
 }

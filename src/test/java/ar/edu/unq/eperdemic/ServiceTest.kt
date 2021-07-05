@@ -2,7 +2,9 @@ package ar.edu.unq.eperdemic
 
 import ar.edu.unq.eperdemic.modelo.*
 import ar.edu.unq.eperdemic.modelo.eventos.Evento
+import ar.edu.unq.eperdemic.persistencia.dao.DataDAO
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
+import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBDataDAO
 import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jDataDAO
@@ -11,6 +13,7 @@ import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner
 import ar.edu.unq.eperdemic.services.runner.hibernate.HibernateTransaction
 import ar.edu.unq.eperdemic.services.runner.mongoDB.MongoConnection
+import ar.edu.unq.eperdemic.services.runner.mongoDB.MongoDBTransaction
 import ar.edu.unq.eperdemic.services.runner.neo4j.Neo4jTransaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 abstract class ServiceTest {
 
     var virus = Patogeno("Virus",57,30,30,50,30)
-    val virus2 = Patogeno("Virus",57,30,30,50,32)
+    var virus2 = Patogeno("Virus",57,30,30,50,32)
     val bacteria = Patogeno("Bacteria",88,20,20,30,12)
     val fiebre = Mutacion("Fiebre",1, mutableListOf(),Atributo.LETALIDAD,10)
     val vomitos = Mutacion("Vomitos",2, mutableListOf(fiebre),Atributo.LETALIDAD,10)
@@ -36,9 +39,7 @@ abstract class ServiceTest {
     val patogenoService = PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO,AlarmaDeEventos)
     val mutacionService = MutacionServiceImpl(mutacionDAO, especieDAO,AlarmaDeEventos)
     val estadisticaService = EstadisticasServiceImpl(especieDAO, vectorDAO)
-    val neo4jDataDAO = Neo4jDataDAO()
-    val hibernateDataDAO = HibernateDataDAO()
-    val mongoConnection = MongoConnection()
+    val dataDAOS = listOf(Neo4jDataDAO(),HibernateDataDAO(),MongoDBDataDAO())
 
     //Ubicaciones
     lateinit var otraUbicacion : Ubicacion
@@ -54,6 +55,7 @@ abstract class ServiceTest {
     lateinit var covid : Especie
     lateinit var flu : Especie
     lateinit var gripe : Especie
+    lateinit var viruela : Especie
     lateinit var especie4 : Especie
     lateinit var especie5 : Especie
     lateinit var especie6 : Especie
@@ -89,19 +91,19 @@ abstract class ServiceTest {
 
     @BeforeEach
     fun inizializate() {
-        TransactionRunner.transactions = listOf(HibernateTransaction,Neo4jTransaction)
+        AlarmaDeEventos.agregar(eventDAO)
+        TransactionRunner.transactions = listOf(HibernateTransaction,Neo4jTransaction)//,MongoDBTransaction)
     }
 
     @AfterEach
     fun eliminarTodo() {
-        neo4jDataDAO.clear()
-        hibernateDataDAO.clear()
+        dataDAOS.forEach { it.clear() }
         AlarmaDeEventos.eliminarTodos()
-        mongoConnection.getCollection("Evento",Evento::class.java).drop()
     }
 
     fun crearDatosParaTesteosDeEstadisticas(){
         patogenoService.crear(virus)
+
         argentina = ubicacionService.crear("Argentina")
         jamaica = ubicacionService.crear("jamaica")
         covid = patogenoService.agregarEspecie(virus.id!!,"Covid",argentina.id!!)

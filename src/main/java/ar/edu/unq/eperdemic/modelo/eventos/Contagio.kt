@@ -22,26 +22,17 @@ class Contagio:Evento {
                 especie : Especie,
                 ubicacion: Ubicacion,
                 subtipo: TipoContagio,
-                mensaje : String){
+                mensaje : String):this(especie,infectado,ubicacion,subtipo,mensaje){
         this.transmisor = transmisor
-        this.infectado = infectado
-        this.especie = especie
-        this.ubicacion = ubicacion
-        this.subtipo = subtipo
-        this.mensaje = mensaje
     }
 
-    //Primer contagio o pandemia
+    // Infección directa a un vector
     constructor(especie : Especie,
                 infectado: Vector,
                 ubicacion: Ubicacion,
                 subtipo: TipoContagio,
-                mensaje : String){
+                mensaje : String):this(especie,ubicacion,subtipo,mensaje){
         this.infectado = infectado
-        this.especie = especie
-        this.ubicacion = ubicacion
-        this.subtipo = subtipo
-        this.mensaje = mensaje
     }
 
     //Primer contagio o pandemia
@@ -60,6 +51,6 @@ class Contagio:Evento {
 
 enum class TipoContagio {
     Pandemia,
-    PrimerContagioEnUbicaion,
+    PrimerContagioEnUbicacion,
     Contagio
 }

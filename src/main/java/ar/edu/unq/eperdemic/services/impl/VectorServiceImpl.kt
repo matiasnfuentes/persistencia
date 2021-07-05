@@ -34,7 +34,7 @@ class VectorServiceImpl(var vectorDAO: VectorDAO,
                 val cantUbicacionesDespuesDeInfectar = especieDAO.cantidadDeUbicacionesDeLaEspecie(especieId)
 
                 if(cantUbicacionesDespuesDeInfectar>cantUbicacionesAntesDeInfectar){
-                    alarmaDeEventos.notificar(especie,vector.ubicacion,TipoContagio.PrimerContagioEnUbicaion)
+                    alarmaDeEventos.notificar(especie,vector.ubicacion,TipoContagio.PrimerContagioEnUbicacion)
                 }
 
                 if(!eraPandemia && especieService.esPandemia(especie.id!!)){

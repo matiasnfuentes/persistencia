@@ -3,27 +3,15 @@ package ar.edu.unq.eperdemic.services.runner.mongoDB
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.MongoCommandException
-import com.mongodb.client.MongoClient
-import com.mongodb.client.MongoClients
-import com.mongodb.client.MongoCollection
-import com.mongodb.client.MongoDatabase
+import com.mongodb.client.*
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.pojo.PojoCodecProvider
 
 class MongoConnection {
+
     var client: MongoClient
     var dataBase: MongoDatabase
-
-
-    fun <T> getCollection(name:String, entityType: Class<T> ): MongoCollection<T> {
-        try{
-            dataBase.createCollection(name)
-        } catch (exception: MongoCommandException){
-            println("Ya existe la coleccion $name")
-        }
-        return dataBase.getCollection(name, entityType)
-    }
 
     init {
         val codecRegistry: CodecRegistry = CodecRegistries.fromRegistries(
@@ -40,5 +28,38 @@ class MongoConnection {
             .build()
         client = MongoClients.create(settings)
         dataBase = client.getDatabase(database)
+    }
+
+    fun <T> getCollection(name:String, entityType: Class<T> ): MongoCollection<T> {
+        try{
+            dataBase.createCollection(name)
+        } catch (exception: MongoCommandException){
+            println("Ya existe la coleccion $name")
+        }
+        return dataBase.getCollection(name, entityType)
+    }
+
+    fun createSession(): ClientSession {
+        return this.client.startSession()
+    }
+
+    companion object {
+
+        private var INSTANCE: MongoConnection? = null
+
+        val instance: MongoConnection
+            get() {
+                if (INSTANCE == null) {
+                    INSTANCE = MongoConnection()
+                }
+                return INSTANCE!!
+            }
+
+        fun destroy() {
+            if (INSTANCE != null) {
+                INSTANCE!!.client.close()
+            }
+            INSTANCE = null
+        }
     }
 }

@@ -23,7 +23,7 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
         runTrx{
             val ubicacion = ubicacionDAO.recuperar(ubicacionid)
             val vector = vectorDAO.recuperar(vectorId)
-            val ruta = conexionesDAO.rutaAUbicacion(vector,ubicacionid)
+            val ruta = conexionesDAO.rutaAUbicacion(vector,ubicacion)
             if (ruta.isNotEmpty()){
                 vector.cambiarUbicacion(ubicacion)
                 alarmaEventos.notificar(vector,ubicacion)
@@ -40,7 +40,7 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
 
     override fun expandir(ubicacionId: Long) {
         runTrx{
-            var vectores = vectorDAO.recuperarVectoresDeUbicacion(ubicacionId)
+            val vectores = vectorDAO.recuperarVectoresDeUbicacion(ubicacionId)
             val vectorDeContagio = Randomizador.getRandomVectorInfectado(vectores)
             if (vectorDeContagio!=null){
                 contagiarVectores(vectores,vectorDeContagio, ubicacionId)
@@ -68,7 +68,7 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
         runTrx {
             val origen = ubicacionDAO.recuperar(ubicacion1)
             val destino = ubicacionDAO.recuperar(ubicacion2)
-            conexionesDAO.conectar(origen.id!!,destino.id!!,tipoCamino)
+            conexionesDAO.conectar(origen,destino,tipoCamino)
         }
     }
 
@@ -108,7 +108,7 @@ class UbicacionServiceImpl(var ubicacionDAO : UbicacionDAO,
             val ubicacion = ubicacionDAO.recuperar(ubicacionId)
 
             if(cantidadDeUbicacionesDelasEspecies.removeFirst()>cantUbicacionesDespuesDeContagiar){
-                alarmaEventos.notificar(it,ubicacion,TipoContagio.PrimerContagioEnUbicaion)
+                alarmaEventos.notificar(it,ubicacion,TipoContagio.PrimerContagioEnUbicacion)
             }
 
             if(!eranPandemias.removeFirst() && especieService.esPandemia(it.id!!)){

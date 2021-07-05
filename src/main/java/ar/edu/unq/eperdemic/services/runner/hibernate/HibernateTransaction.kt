@@ -42,3 +42,4 @@ object HibernateTransaction: Transaction() {
         return transaction.get() != null
     }
 }
+

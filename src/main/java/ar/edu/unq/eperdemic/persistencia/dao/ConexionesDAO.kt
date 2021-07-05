@@ -8,8 +8,8 @@ interface ConexionesDAO {
 
     fun crearUbicacion(ubicacion : Ubicacion)
     fun recuperarUbicacion(hibernateID : Long) : Ubicacion
-    fun conectar(ubicacion1:Long, ubicacion2:Long, tipoCamino: TipoDeCamino)
+    fun conectar(origen: Ubicacion, destino: Ubicacion, tipoCamino: TipoDeCamino)
     fun conectados(ubicacionId:Long): List<Ubicacion>
-    fun rutaAUbicacion(vector: Vector, ubicacionid: Long): List<Long>
+    fun rutaAUbicacion(vector: Vector, destino:Ubicacion): List<Long>
     fun capacidadDeExpansion(vector: Vector, movimientos: Int): Int
 }
