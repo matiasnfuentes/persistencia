@@ -50,6 +50,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:4.2.3")
     implementation("org.mongodb:mongodb-driver-core:4.2.3")
     implementation("org.mongodb:bson:4.2.3")
+    implementation("com.google.firebase:firebase-admin:7.3.0")
 }
 
 tasks.withType<Test> {

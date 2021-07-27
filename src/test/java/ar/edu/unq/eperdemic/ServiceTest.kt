@@ -3,6 +3,8 @@ package ar.edu.unq.eperdemic
 import ar.edu.unq.eperdemic.modelo.*
 import ar.edu.unq.eperdemic.modelo.eventos.Evento
 import ar.edu.unq.eperdemic.persistencia.dao.DataDAO
+import ar.edu.unq.eperdemic.persistencia.dao.firebase.FirebaseDataDAO
+import ar.edu.unq.eperdemic.persistencia.dao.firebase.FirebaseEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
 import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBDataDAO
 import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBEventDAO
@@ -31,7 +33,7 @@ abstract class ServiceTest {
     val vectorDAO = HibernateVectorDAO()
     val mutacionDAO = HibernateMutacionDAO()
     val conexionesDAO = Neo4jConexionesDAO()
-    val eventDAO = MongoDBEventDAO()
+    val eventDAO = FirebaseEventDAO()
     val especieService = EspecieServiceImpl(especieDAO, ubicacionDAO)
     val vectorService = VectorServiceImpl(vectorDAO,especieDAO,ubicacionDAO,especieService,AlarmaDeEventos)
     val feedService = FeedServiceImpl(eventDAO,vectorDAO,patogenoDAO,ubicacionDAO)
@@ -39,7 +41,7 @@ abstract class ServiceTest {
     val patogenoService = PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO,AlarmaDeEventos)
     val mutacionService = MutacionServiceImpl(mutacionDAO, especieDAO,AlarmaDeEventos)
     val estadisticaService = EstadisticasServiceImpl(especieDAO, vectorDAO)
-    val dataDAOS = listOf(Neo4jDataDAO(),HibernateDataDAO(),MongoDBDataDAO())
+    val dataDAOS = listOf(Neo4jDataDAO(), HibernateDataDAO(), FirebaseDataDAO())
 
     //Ubicaciones
     lateinit var otraUbicacion : Ubicacion
@@ -97,7 +99,7 @@ abstract class ServiceTest {
 
     @AfterEach
     fun eliminarTodo() {
-        dataDAOS.forEach { it.clear() }
+        //dataDAOS.forEach { it.clear() }
         AlarmaDeEventos.eliminarTodos()
     }
 

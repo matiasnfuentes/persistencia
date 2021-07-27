@@ -66,7 +66,7 @@ class Bootstrap (val ubicacionService: UbicacionService, val vectorService: Vect
             "Convulsiones", "Locura", "Necrosis", "Parálisis", "Coma", "Inmunosupresión")
         names.forEach{
             val mutacion = MutacionDTO(null, it,
-                Random.nextInt(1, 10),
+                0,//Random.nextInt(1, 10),
                 Atributo.values().random(),
                 Random.nextInt(1, 20))
             mutacionService.crear(mutacion.aModelo())

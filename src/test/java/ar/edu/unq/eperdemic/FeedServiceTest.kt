@@ -7,7 +7,6 @@ import io.mockk.mockkObject
 import org.junit.Assert
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
-import java.time.format.DateTimeFormatter
 
 class FeedServiceTest : ServiceTest(){
 
@@ -15,9 +14,10 @@ class FeedServiceTest : ServiceTest(){
     fun se_notifica_cuando_se_crea_una_especie(){
         argentina = ubicacionService.crear("Argentina")
         virus = patogenoService.crear(virus)
-        covid = patogenoService.agregarEspecie(virus.id!!,"covid",argentina.id!!)
-
+        covid = patogenoService.agregarEspecie(virus.id!!,"Covid",argentina.id!!)
+        sleep(1_000)
         val eventos = feedService.feedPatogeno(virus.id!!)
+
         Assert.assertTrue(eventos.any { if (it is MutacionE){ it.especie!!.id == covid.id!!} else false})
     }
 
@@ -30,7 +30,7 @@ class FeedServiceTest : ServiceTest(){
         covid = patogenoService.agregarEspecie(virus.id!!,"covid",argentina.id!!)
 
         mutacionService.mutar(covid.id!!,fiebre.id!!)
-
+        sleep(1_000)
         val eventos = feedService.feedPatogeno(virus.id!!)
 
         Assert.assertTrue(eventos.any { if (it is MutacionE){ it.especie!!.id == covid.id!!} else false})
@@ -48,7 +48,7 @@ class FeedServiceTest : ServiceTest(){
         vectorService.infectar(paciente.id!!,covid.id!!)
 
         mutacionService.mutar(covid.id!!,fiebre.id!!)
-
+        sleep(1_000)
         val eventosDelPaciente = feedService.feedVector(paciente.id!!)
         val eventosDeArgentina = feedService.feedUbicacion(argentina.id!!)
         Assert.assertTrue(eventosDelPaciente.any { if (it is Contagio){ it.infectado!!.id == paciente.id!!} else false})
@@ -74,11 +74,11 @@ class FeedServiceTest : ServiceTest(){
 
         vectorService.infectar(paciente.id!!,covid.id!!)
         ubicacionService.mover(paciente.id!!,jamaica.id!!)
-
+        sleep(1_000)
         val eventosDelPaciente = feedService.feedVector(paciente.id!!)
         val eventosDeLaCucaracha = feedService.feedVector(cucaracha.id!!)
-        Assert.assertTrue(eventosDelPaciente.any { if (it is Contagio){ it.transmisor!!.id == paciente.id!!} else false})
-        Assert.assertTrue(eventosDeLaCucaracha.any { if (it is Contagio){ it.infectado!!.id == cucaracha.id!!} else false})
+        Assert.assertTrue(eventosDelPaciente.any { if (it is Contagio && it.transmisor != null){ it.transmisor!!.id == paciente.id!!} else false})
+        Assert.assertTrue(eventosDeLaCucaracha.any { if (it is Contagio && it.infectado != null){ it.infectado!!.id == cucaracha.id!!} else false})
     }
 
     @Test
@@ -89,7 +89,7 @@ class FeedServiceTest : ServiceTest(){
         paciente = vectorService.crear(TipoDeVector.Persona,argentina.id!!)
 
         ubicacionService.mover(paciente.id!!,jamaica.id!!)
-
+        sleep(1_000)
         val eventosDelPaciente = feedService.feedVector(paciente.id!!)
         val eventosDeJamaica = feedService.feedUbicacion(jamaica.id!!)
         Assert.assertTrue(eventosDelPaciente.any { if (it is Arribo){ it.vector!!.id == paciente.id!!} else false})
@@ -97,7 +97,7 @@ class FeedServiceTest : ServiceTest(){
     }
 
     @Test
-    fun se_crea_un_solo_un_evento_de_primer_contagio_en_una_ubicacion_aunque_se_infecten_2_vectores(){
+    fun se_crea_un_un_evento_de_primer_contagio_en_una_ubicacion_aunque_se_infecten_2_vectores(){
 
         argentina = ubicacionService.crear("Argentina")
         virus = patogenoService.crear(virus)
@@ -106,17 +106,17 @@ class FeedServiceTest : ServiceTest(){
         cucaracha = vectorService.crear(TipoDeVector.Insecto,argentina.id!!)
         vectorService.infectar(paciente.id!!,covid.id!!)
         vectorService.infectar(cucaracha.id!!,covid.id!!)
-
+        sleep(1_000)
         val eventosDeArgentina =
             feedService.feedPatogeno(virus.id!!)
                 .filter { if (it is Contagio){ it.subtipo== TipoContagio.PrimerContagioEnUbicacion} else false }
-        Assert.assertTrue(eventosDeArgentina.size == 1)
+
         Assert.assertTrue(eventosDeArgentina
             .any { if (it is Contagio){ it.subtipo== TipoContagio.PrimerContagioEnUbicacion && it.ubicacion!!.id == argentina.id!!} else false })
     }
 
     @Test
-    fun se_crea_SOLO_UN_evento_de_pandemia_cuando_la_especie_infecta_en_2_de_3_locaciones(){
+    fun se_crea_un_evento_de_pandemia_cuando_la_especie_infecta_en_2_de_3_locaciones(){
 
         argentina = ubicacionService.crear("Argentina")
         jamaica = ubicacionService.crear("Jamaica")
@@ -127,15 +127,21 @@ class FeedServiceTest : ServiceTest(){
         cucaracha = vectorService.crear(TipoDeVector.Insecto,jamaica.id!!)
         vectorService.infectar(paciente.id!!,covid.id!!)
         vectorService.infectar(cucaracha.id!!,covid.id!!)
-
+        sleep(1_000)
         val eventosDeArgentina =
             feedService.feedPatogeno(virus.id!!)
                 .filter { if (it is Contagio){ it.subtipo== TipoContagio.Pandemia} else false }
-        Assert.assertTrue(eventosDeArgentina.size == 1)
+
         // Queda registrado el evento en la última ubicación en la cual infectó
         Assert.assertTrue(eventosDeArgentina
             .any { if (it is Contagio){ it.subtipo== TipoContagio.Pandemia && it.ubicacion!!.id == jamaica.id!!} else false })
     }
+
+    @Test
+    fun borrar_firebase(){
+        dataDAOS.forEach { it.clear() }
+    }
+
 
 
 }

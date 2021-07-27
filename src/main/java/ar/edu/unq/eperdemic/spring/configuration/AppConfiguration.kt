@@ -1,6 +1,7 @@
 package ar.edu.unq.eperdemic.spring.configuration
 
 import ar.edu.unq.eperdemic.persistencia.dao.*
+import ar.edu.unq.eperdemic.persistencia.dao.firebase.FirebaseEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.hibernate.*
 import ar.edu.unq.eperdemic.persistencia.dao.mongoDB.MongoDBEventDAO
 import ar.edu.unq.eperdemic.persistencia.dao.neo4j.Neo4jConexionesDAO
@@ -23,10 +24,17 @@ class AppConfiguration {
     fun conexionesDAO(): ConexionesDAO {
         return Neo4jConexionesDAO()
     }
-
+/*
     @Bean
     fun eventDAO(): MongoDBEventDAO {
         return MongoDBEventDAO()
+    }*/
+
+    @Bean
+    fun eventDAO(): FirebaseEventDAO {
+        val eventDAO = FirebaseEventDAO()
+        AlarmaDeEventos.agregar(eventDAO)
+        return eventDAO
     }
 
     @Bean
@@ -73,7 +81,7 @@ class AppConfiguration {
     fun patogenoService(patogenoDAO: PatogenoDAO,
                         especieDAO: EspecieDAO,
                         ubicacionDAO: UbicacionDAO,
-                        eventDAO: MongoDBEventDAO): PatogenoService {
+                        eventDAO: FirebaseEventDAO): PatogenoService {
         return PatogenoServiceImpl(patogenoDAO,especieDAO,ubicacionDAO,AlarmaDeEventos)
     }
 

@@ -1,5 +1,6 @@
 package ar.edu.unq.eperdemic.spring
 
+import ar.edu.unq.eperdemic.services.observer.AlarmaDeEventos
 import ar.edu.unq.eperdemic.services.runner.TransactionRunner
 import ar.edu.unq.eperdemic.services.runner.hibernate.HibernateTransaction
 import ar.edu.unq.eperdemic.services.runner.neo4j.Neo4jTransaction

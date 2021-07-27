@@ -5,8 +5,9 @@ import ar.edu.unq.eperdemic.services.runner.TransactionRunner.runTrx
 import org.junit.Assert
 import org.junit.jupiter.api.Test
 
-
 class EspecieServiceTest: ServiceTest() {
+
+
 
     @Test
     fun persisto_una_especie_y_puedo_recuperarla() {

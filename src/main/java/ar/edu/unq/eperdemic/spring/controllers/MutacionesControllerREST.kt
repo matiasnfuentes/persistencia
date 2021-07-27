@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @CrossOrigin
 @ServiceREST
-@RequestMapping("/mutaciones")
+@RequestMapping("/mutacion")
 class MutacionesControllerREST(private val mutacionService: MutacionService) {
 
     @GetMapping
