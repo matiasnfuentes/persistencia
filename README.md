@@ -16,3 +16,4 @@ Desarrollo de un simulador de pandemias en Kotlin, realizando persistencia en SQ
  3.  [Entrega 3](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega3/entrega3.md)
  4. [Entrega 4](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega4/entrega4.md)
  5. [Entrega 5](https://github.com/matiasnfuentes/persistencia/blob/master/enunciado/entrega5/entrega5.md)
+ 6. La entrega final constaba de elegir una base de datos adicional e integrarla al proyecto. Se trabajó sobre Firestore, y se ingregro con una aplicación móvil [Eperdemic APP](https://github.com/matiasnfuentes/eperdemic-mobile-app)
